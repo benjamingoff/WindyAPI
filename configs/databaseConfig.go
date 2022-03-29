@@ -1,40 +1,31 @@
 package configs
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
-	"fmt"
-	"go.mongodb.org/mongo-driver/mongo"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
 	"log"
 	"time"
 )
 
-func ConnectToDatabase() *mongo.Client {
-	client, err := mongo.NewClient(options.Client().ApplyURI("mongodb://127.0.0.1:27017"))
-
-	if err != nil {
-		log.Fatal(err)
-	}
+func ConnectToDatabase() *firestore.Client {
 
 	ctx, _ := context.WithTimeout(context.Background(), 15*time.Second)
 
-	err = client.Connect(ctx)
+	sa := option.WithCredentialsFile("C:\\Users\\benja\\go\\src\\github.com\\benjamingoff\\WeatherAPI\\WindyAPI\\configs\\windyapidatabase-84bdca0a7349.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	err = client.Ping(ctx, nil)
+	client, err := app.Firestore(ctx)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	fmt.Println("Successfully connected to the database.")
+	defer client.Close()
 	return client
 }
 
-var DB *mongo.Client = ConnectToDatabase()
-
-func GetCollection(client *mongo.Client, collectionName string) *mongo.Collection {
-	collection := client.Database("Weather").Collection(collectionName)
-	return collection
-}
+var DB *firestore.Client = ConnectToDatabase()

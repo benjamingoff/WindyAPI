@@ -1,17 +1,16 @@
 package controllers
 
 import (
+	"cloud.google.com/go/firestore"
 	"context"
 	"encoding/json"
 	"github.com/benjamingoff/WeatherAPI/WindyAPI/configs"
-	"github.com/benjamingoff/WeatherAPI/WindyAPI/responses"
 	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"net/http"
 )
 
-var weatherCollection *mongo.Collection = configs.GetCollection(configs.DB, "Weather")
+var client = configs.DB
 
 func GetMostRecentWeather() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -19,18 +18,16 @@ func GetMostRecentWeather() http.HandlerFunc {
 
 		ctx := context.Background()
 
-		var weather responses.InnerWeatherObject
+		// var weather responses.InnerWeatherObject
 
 		myOptions := options.FindOne()
 		myOptions.SetSort(bson.M{"$natural": -1})
 
-		err := weatherCollection.FindOne(ctx, bson.M{}, myOptions).Decode(&weather)
+		query := client.Collection("WeatherReports").OrderBy("Time", firestore.Desc).Limit(1).Documents(ctx)
 
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-		}
-
+		doc, _ := query.Next()
+		json.NewEncoder(w).Encode(doc.Data())
 		w.WriteHeader(http.StatusOK)
-		json.NewEncoder(w).Encode(weather)
+
 	}
 }
