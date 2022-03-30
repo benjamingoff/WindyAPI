@@ -1,7 +1,6 @@
 package main
 
 import (
-	"github.com/benjamingoff/WeatherAPI/WindyAPI/configs"
 	"github.com/benjamingoff/WeatherAPI/WindyAPI/routes"
 	"github.com/gorilla/mux"
 	"log"
@@ -13,7 +12,6 @@ func main() {
 
 	routes.WeatherRoutes(router)
 
-	configs.ConnectToDatabase()
-
 	log.Fatal(http.ListenAndServe(":8000", router))
+
 }

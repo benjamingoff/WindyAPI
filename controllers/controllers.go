@@ -4,13 +4,30 @@ import (
 	"cloud.google.com/go/firestore"
 	"context"
 	"encoding/json"
-	"github.com/benjamingoff/WeatherAPI/WindyAPI/configs"
-	"go.mongodb.org/mongo-driver/bson"
-	"go.mongodb.org/mongo-driver/mongo/options"
+	firebase "firebase.google.com/go"
+	"google.golang.org/api/option"
+	"log"
 	"net/http"
 )
 
-var client = configs.DB
+func createClient(ctx context.Context) *firestore.Client {
+	sa := option.WithCredentialsFile("controllers/windyapidatabase-firebase-adminsdk-p6hix-46ad1ad13e.json")
+	app, err := firebase.NewApp(ctx, nil, sa)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	client, err := app.Firestore(ctx)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Println("Connected to the firestore.")
+	return client
+}
+
+var client = createClient(context.Background())
 
 func GetMostRecentWeather() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -18,16 +35,21 @@ func GetMostRecentWeather() http.HandlerFunc {
 
 		ctx := context.Background()
 
-		// var weather responses.InnerWeatherObject
-
-		myOptions := options.FindOne()
-		myOptions.SetSort(bson.M{"$natural": -1})
-
 		query := client.Collection("WeatherReports").OrderBy("Time", firestore.Desc).Limit(1).Documents(ctx)
 
-		doc, _ := query.Next()
-		json.NewEncoder(w).Encode(doc.Data())
-		w.WriteHeader(http.StatusOK)
+		doc, err := query.Next()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Fatal(err, "Unable to fetch most recent weather report.")
 
+		}
+
+		log.Println("Request from ", r.Header.Get("X-Forwarded-For"))
+
+		err = json.NewEncoder(w).Encode(doc.Data())
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+		w.WriteHeader(http.StatusOK)
 	}
 }
