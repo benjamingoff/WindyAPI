@@ -1,5 +1,7 @@
 package responses
 
+// InnerWeatherObject Struct for the weather object that is returned from the database
+// This isn't technically being used right now, TODO: Go back in and type this stronger.
 type InnerWeatherObject struct {
 	Time               float64   `json:"time"`
 	WeatherRadar       float64   `json:"WeatherRadar"`

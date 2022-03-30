@@ -8,10 +8,10 @@ import (
 )
 
 func main() {
+	// Creation of the router, the routes to the router, and the http listener.
 	router := mux.NewRouter()
 
 	routes.WeatherRoutes(router)
 
 	log.Fatal(http.ListenAndServe(":8000", router))
-
 }
