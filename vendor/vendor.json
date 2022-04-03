@@ -4,11 +4,11 @@
 	"package": [],
 	"rootPath": "github.com/benjamingoff/WeatherAPI/WindyAPI",
 	"heroku": {
-		"goVersion": "go1.17",
 		"install": [
 			"github.com/gorilla/mux",
 			"firebase.google.com/go",
 			"google.golang.org/api/option"
-		]
+		],
+		"goVersion": "go1.17"
 	}
 }
